@@ -327,10 +327,7 @@ impl Widget for PeersScreen {
             .direction(ratatui::layout::Direction::Vertical)
             .margin(2)
             .spacing(1)
-            .constraints(vec![
-                Constraint::Length(1),
-                Constraint::Min(0),
-            ])
+            .constraints(vec![Constraint::Length(1), Constraint::Min(0)])
             .split(area);
 
         let peer_count_rect = screen_layout[0];
