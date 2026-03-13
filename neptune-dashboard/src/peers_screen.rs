@@ -13,7 +13,6 @@ use multiaddr::Protocol;
 use neptune_cash::application::rpc::auth;
 use neptune_cash::protocol::peer::peer_info::PeerInfo;
 use ratatui::layout::Constraint;
-use ratatui::layout::Margin;
 use ratatui::style::Color;
 use ratatui::style::Modifier;
 use ratatui::style::Style;
@@ -35,7 +34,6 @@ use unicode_width::UnicodeWidthStr;
 
 use super::dashboard_app::Config;
 use super::dashboard_app::DashboardEvent;
-use super::overview_screen::VerticalRectifier;
 use super::screen::Screen;
 use crate::dashboard_rpc_client::DashboardRpcClient;
 use crate::scrollable_table::ScrollableTable;
@@ -325,13 +323,18 @@ impl Widget for PeersScreen {
             .style(style)
             .render(area, buf);
 
-        let inner = area.inner(Margin {
-            vertical: 2,
-            horizontal: 2,
-        });
+        let screen_layout = ratatui::layout::Layout::default()
+            .direction(ratatui::layout::Direction::Vertical)
+            .margin(2)
+            .spacing(1)
+            .constraints(vec![
+                Constraint::Length(1),
+                Constraint::Min(0),
+            ])
+            .split(area);
 
-        let mut vrecter = VerticalRectifier::new(inner);
-        let peer_count_rect = vrecter.next((5).try_into().unwrap());
+        let peer_count_rect = screen_layout[0];
+        let table_rect = screen_layout[1];
 
         let num_peers = self.data.lock().unwrap().len();
 
@@ -530,18 +533,7 @@ impl Widget for PeersScreen {
         let table = Table::new(rows, width_constraints)
             .style(style)
             .row_highlight_style(selected_style);
-        vrecter.set_width(min(
-            inner.width,
-            widths.iter().sum::<usize>() as u16 + 3 * widths.len() as u16 + 1,
-        ));
 
-        let mut table_rect = vrecter.remaining();
-        table_rect.height -= 2; // shouldn't be necessary???
-
-        table_rect.width = min(
-            table_rect.width,
-            widths.iter().sum::<usize>() as u16 + 3 * widths.len() as u16 + 1,
-        );
         StatefulWidget::render(table, table_rect, buf, self.scrollable_table.state_mut());
     }
 }
